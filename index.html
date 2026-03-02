@@ -12,11 +12,9 @@ body {
     background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
     color: white;
     text-align: center;
-
     min-height: 100vh;
     overflow-x: hidden;
 }
-
 
 .top-menu {
     position: absolute;
@@ -77,7 +75,8 @@ button:hover {
     position: fixed;
     top: 0;
     right: -100%;
-    width: 300px;
+    width: 80%;
+    max-width: 300px;
     height: 100%;
     background: #111;
     padding: 20px;
@@ -114,6 +113,8 @@ ul { text-align: left; padding-left: 20px; }
     <p>Salão Estrela Azul<br>
     Rua Exemplo, 123 - Belo Horizonte</p>
 </div>
+
+<button id="btnAlterar" class="hidden" onclick="alterarResposta()">Alterar resposta</button>
 
 </div>
 </div>
@@ -159,10 +160,13 @@ function atualizarContador() {
 setInterval(atualizarContador, 1000);
 atualizarContador();
 
-// Se já respondeu
+// Carregamento inicial
 window.onload = function() {
     if(localStorage.getItem("respondeu") === "sim") {
+
         document.getElementById("confirmacao").style.display = "none";
+        document.getElementById("btnAlterar").classList.remove("hidden");
+
         if(localStorage.getItem("resposta") === "vou") {
             document.getElementById("localFesta").classList.remove("hidden");
         }
@@ -179,27 +183,42 @@ function responder(tipo) {
 
     let lista = JSON.parse(localStorage.getItem("convidados")) || [];
 
-    if(lista.some(p => p.nome.toLowerCase() === nome.toLowerCase())) {
-        alert("Esse nome já foi registrado.");
-        return;
+    let pessoaExistente = lista.find(p => 
+        p.nome.toLowerCase() === nome.toLowerCase()
+    );
+
+    if(pessoaExistente) {
+        pessoaExistente.resposta = tipo;
+        alert("Resposta atualizada com sucesso!");
+    } else {
+        lista.push({ nome: nome, resposta: tipo });
     }
 
-    lista.push({ nome: nome, resposta: tipo });
     localStorage.setItem("convidados", JSON.stringify(lista));
     localStorage.setItem("respondeu", "sim");
     localStorage.setItem("resposta", tipo);
 
     document.getElementById("confirmacao").style.display = "none";
+    document.getElementById("btnAlterar").classList.remove("hidden");
 
     if(tipo === "vou") {
         document.getElementById("localFesta").classList.remove("hidden");
-
         confetti({
             particleCount: 150,
             spread: 100,
             origin: { y: 0.6 }
         });
+    } else {
+        document.getElementById("localFesta").classList.add("hidden");
     }
+}
+
+function alterarResposta() {
+    document.getElementById("confirmacao").style.display = "block";
+    document.getElementById("localFesta").classList.add("hidden");
+    document.getElementById("btnAlterar").classList.add("hidden");
+
+    localStorage.removeItem("respondeu");
 }
 
 function toggleAdmin() {
