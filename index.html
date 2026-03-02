@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aniversário 🎉</title>
+
+<style>
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+    color: white;
+    text-align: center;
+}
+
+.top-menu {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    font-size: 28px;
+    cursor: pointer;
+}
+
+.container {
+    margin-top: 90px;
+}
+
+.card {
+    background: rgba(255,255,255,0.1);
+    backdrop-filter: blur(10px);
+    padding: 30px;
+    border-radius: 25px;
+    width: 420px;
+    margin: auto;
+    box-shadow: 0 0 30px rgba(0,0,0,0.3);
+}
+
+input {
+    padding: 12px;
+    width: 85%;
+    border-radius: 30px;
+    border: none;
+    margin-top: 15px;
+    text-align: center;
+}
+
+button {
+    padding: 12px 25px;
+    margin: 10px 5px;
+    border-radius: 30px;
+    border: none;
+    background: #00c6ff;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+button:hover {
+    background: #0072ff;
+    transform: scale(1.05);
+}
+
+.hidden { display: none; }
+
+#contador { margin-bottom: 15px; }
+
+.admin-panel {
+    position: fixed;
+    top: 0;
+    right: -100%;
+    width: 300px;
+    height: 100%;
+    background: #111;
+    padding: 20px;
+    transition: 0.4s;
+    overflow-y: auto;
+}
+
+.admin-panel.active { right: 0; }
+
+ul { text-align: left; padding-left: 20px; }
+</style>
+</head>
+<body>
+
+<div class="top-menu" onclick="toggleAdmin()">⋮</div>
+
+<div class="container">
+<div class="card">
+
+<h1>🎉 Meu Aniversário 🎉</h1>
+
+<div id="contador"></div>
+
+<div id="confirmacao">
+    <input type="text" id="nome" placeholder="Digite seu nome e sobrenome">
+    <br>
+    <button onclick="responder('vou')">Vou 🎉</button>
+    <button onclick="responder('nao')">Não vou ❌</button>
+</div>
+
+<div id="localFesta" class="hidden">
+    <h2>Presença Confirmada ✅</h2>
+    <p><strong>Local:</strong></p>
+    <p>Salão Estrela Azul<br>
+    Rua Exemplo, 123 - Belo Horizonte</p>
+</div>
+
+</div>
+</div>
+
+<div id="adminPanel" class="admin-panel">
+    <h3>Área Restrita</h3>
+    <input type="password" id="senhaAdmin" placeholder="Senha">
+    <br>
+    <button onclick="abrirAdmin()">Entrar</button>
+
+    <h4>Confirmados:</h4>
+    <ul id="listaVou"></ul>
+
+    <h4>Não irão:</h4>
+    <ul id="listaNao"></ul>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+<script>
+const SENHA = "1234";
+
+// Contador
+function atualizarContador() {
+    const dataFesta = new Date("2026-03-14T00:00:00");
+    const agora = new Date();
+    const diff = dataFesta - agora;
+
+    const dias = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const horas = Math.floor((diff / (1000 * 60 * 60)) % 24);
+    const minutos = Math.floor((diff / (1000 * 60)) % 60);
+    const segundos = Math.floor((diff / 1000) % 60);
+
+    document.getElementById("contador").innerHTML =
+        `Faltam ${dias} dias, ${horas}h ${minutos}m ${segundos}s 🎂`;
+}
+setInterval(atualizarContador, 1000);
+atualizarContador();
+
+// Se já respondeu
+window.onload = function() {
+    if(localStorage.getItem("respondeu") === "sim") {
+        document.getElementById("confirmacao").style.display = "none";
+        if(localStorage.getItem("resposta") === "vou") {
+            document.getElementById("localFesta").classList.remove("hidden");
+        }
+    }
+};
+
+function responder(tipo) {
+    let nome = document.getElementById("nome").value.trim();
+
+    if(nome.split(" ").length < 2) {
+        alert("Digite nome e sobrenome.");
+        return;
+    }
+
+    let lista = JSON.parse(localStorage.getItem("convidados")) || [];
+
+    // Impede repetição
+    if(lista.some(p => p.nome.toLowerCase() === nome.toLowerCase())) {
+        alert("Esse nome já foi registrado.");
+        return;
+    }
+
+    lista.push({ nome: nome, resposta: tipo });
+    localStorage.setItem("convidados", JSON.stringify(lista));
+
+    localStorage.setItem("respondeu", "sim");
+    localStorage.setItem("resposta", tipo);
+
+    document.getElementById("confirmacao").style.display = "none";
+
+    if(tipo === "vou") {
+        document.getElementById("localFesta").classList.remove("hidden");
+
+        confetti({
+            particleCount: 150,
+            spread: 100,
+            origin: { y: 0.6 }
+        });
+    }
+}
+
+function toggleAdmin() {
+    document.getElementById("adminPanel").classList.toggle("active");
+}
+
+function abrirAdmin() {
+    let senha = document.getElementById("senhaAdmin").value;
+    if(senha !== SENHA) {
+        alert("Senha incorreta.");
+        return;
+    }
+
+    let lista = JSON.parse(localStorage.getItem("convidados")) || [];
+    let ulVou = document.getElementById("listaVou");
+    let ulNao = document.getElementById("listaNao");
+
+    ulVou.innerHTML = "";
+    ulNao.innerHTML = "";
+
+    lista.forEach(pessoa => {
+        let li = document.createElement("li");
+        li.textContent = pessoa.nome;
+
+        if(pessoa.resposta === "vou") {
+            ulVou.appendChild(li);
+        } else {
+            ulNao.appendChild(li);
+        }
+    });
+}
+</script>
+
+</body>
+</html>
