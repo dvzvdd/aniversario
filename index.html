@@ -24,6 +24,7 @@ body {
 
 .container {
     margin-top: 90px;
+    padding: 0 15px;
 }
 
 .card {
@@ -31,14 +32,16 @@ body {
     backdrop-filter: blur(10px);
     padding: 30px;
     border-radius: 25px;
-    width: 420px;
+    width: 100%;
+    max-width: 420px;
     margin: auto;
     box-shadow: 0 0 30px rgba(0,0,0,0.3);
 }
 
 input {
     padding: 12px;
-    width: 85%;
+    width: 90%;
+    max-width: 300px;
     border-radius: 30px;
     border: none;
     margin-top: 15px;
@@ -127,13 +130,18 @@ ul { text-align: left; padding-left: 20px; }
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
 <script>
-const SENHA = "1234";
+const SENHA = "122103";
 
 // Contador
 function atualizarContador() {
     const dataFesta = new Date("2026-03-14T00:00:00");
     const agora = new Date();
     const diff = dataFesta - agora;
+
+    if(diff <= 0){
+        document.getElementById("contador").innerHTML = "A festa já começou! 🎉";
+        return;
+    }
 
     const dias = Math.floor(diff / (1000 * 60 * 60 * 24));
     const horas = Math.floor((diff / (1000 * 60 * 60)) % 24);
@@ -143,6 +151,7 @@ function atualizarContador() {
     document.getElementById("contador").innerHTML =
         `Faltam ${dias} dias, ${horas}h ${minutos}m ${segundos}s 🎂`;
 }
+
 setInterval(atualizarContador, 1000);
 atualizarContador();
 
@@ -166,7 +175,6 @@ function responder(tipo) {
 
     let lista = JSON.parse(localStorage.getItem("convidados")) || [];
 
-    // Impede repetição
     if(lista.some(p => p.nome.toLowerCase() === nome.toLowerCase())) {
         alert("Esse nome já foi registrado.");
         return;
@@ -174,7 +182,6 @@ function responder(tipo) {
 
     lista.push({ nome: nome, resposta: tipo });
     localStorage.setItem("convidados", JSON.stringify(lista));
-
     localStorage.setItem("respondeu", "sim");
     localStorage.setItem("resposta", tipo);
 
@@ -196,7 +203,7 @@ function toggleAdmin() {
 }
 
 function abrirAdmin() {
-    let senha = document.getElementById("senhaAdmin").value;
+    let senha = document.getElementById("senhaAdmin").value.trim();
     if(senha !== SENHA) {
         alert("Senha incorreta.");
         return;
